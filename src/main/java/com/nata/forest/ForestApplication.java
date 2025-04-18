@@ -27,21 +27,22 @@ public class ForestApplication {
     }
 
     private StoryService createProxy(StoryService storyService) {
-        return (StoryService) Proxy.newProxyInstance(
-            storyService.getClass().getClassLoader(),
-            storyService.getClass().getInterfaces(),
-            (proxy, method, args1) -> {
-                if (method.getAnnotation(Mystery.class) != null) {
-                    System.out.println("mysterious things starting");
-                }
-                try {
-                    return method.invoke(storyService, args1);
-
-                } finally {
+        return (StoryService) Proxy
+            .newProxyInstance(
+                storyService.getClass().getClassLoader(),
+                storyService.getClass().getInterfaces(),
+                (proxy, method, args1) -> {
                     if (method.getAnnotation(Mystery.class) != null) {
-                        System.out.println("mysterious things ending");
+                        System.out.println("mysterious things starting");
                     }
-                }
-            });
+                    try {
+                        return method.invoke(storyService, args1);
+
+                    } finally {
+                        if (method.getAnnotation(Mystery.class) != null) {
+                            System.out.println("mysterious things ending");
+                        }
+                    }
+                });
     }
 }
