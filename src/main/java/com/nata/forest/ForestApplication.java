@@ -32,11 +32,6 @@ public class ForestApplication {
     }
 
     @Bean
-    public DefaultStoryService storyService() {
-        return new DefaultStoryService();
-    }
-
-    @Bean
     ApplicationRunner applicationRunner(StoryService storyService) {
         return args -> {
            storyService.create();
