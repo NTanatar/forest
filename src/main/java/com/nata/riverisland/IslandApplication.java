@@ -1,5 +1,8 @@
 package com.nata.riverisland;
 
+import static com.nata.util.BeanUtils.createProxyTwo;
+import static com.nata.util.BeanUtils.isMysterious;
+
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
@@ -12,16 +15,7 @@ public class IslandApplication {
         SpringApplication.run(IslandApplication.class, args);
     }
 
-    static class MysteriousShortStoryService extends ShortStoryService {
-        @Override
-        public void create() {
-            System.out.println("It is foggy");
-            super.create();
-            System.out.println("Fog disappeared");
-        }
-    }
-
-    @Bean
+        @Bean
     static MysteryBeanPostProcessor mysteryBeanPostProcessor() {
         return new MysteryBeanPostProcessor();
     }
@@ -29,10 +23,10 @@ public class IslandApplication {
     static class MysteryBeanPostProcessor implements BeanPostProcessor {
         @Override
         public Object postProcessAfterInitialization(Object bean, String beanName) {
-            if (bean instanceof ShortStoryService) {
-                return new MysteriousShortStoryService();
+            if (!isMysterious(bean)) {
+                return bean;
             }
-            return BeanPostProcessor.super.postProcessAfterInitialization(bean, beanName);
+            return createProxyTwo(bean);
         }
     }
 
