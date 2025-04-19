@@ -1,4 +1,4 @@
-package com.nata.forest;
+package com.nata.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -13,6 +13,6 @@ import org.springframework.aot.hint.annotation.Reflective;
 @Inherited
 @Documented
 @Reflective
-@interface Mystery {
+public @interface Mystery {
 
 }
