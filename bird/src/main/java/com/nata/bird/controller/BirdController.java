@@ -1,9 +1,11 @@
 package com.nata.bird.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Controller
 public class BirdController {
@@ -16,6 +18,7 @@ public class BirdController {
 
     @PostMapping("/feed")
     @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
     public FeedResponse feed() {
         return new FeedResponse("thanks");
     }
