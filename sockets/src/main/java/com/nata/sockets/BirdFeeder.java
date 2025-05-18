@@ -9,14 +9,17 @@ import lombok.Getter;
 @Getter
 public class BirdFeeder {
 
-    static void feedBird() throws IOException {
-        String GET_REQUEST = "GET /bird/sound HTTP/1.1\r\nHost:localhost\r\n\r\n";
+    static final String GET_REQUEST = "GET /bird/sound HTTP/1.1\r\nHost:localhost\r\n\r\n";
+
+    static final String POST_REQUEST = "POST /bird/feed HTTP/1.1\r\nHost:localhost\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\ncorn";
+
+    static void send(String request) throws IOException {
         Socket socket = new Socket("localhost", 8080);
         InputStream is = socket.getInputStream();
         OutputStream os = socket.getOutputStream();
 
         try {
-            os.write(GET_REQUEST.getBytes());
+            os.write(request.getBytes());
             socket.shutdownOutput();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -33,10 +36,18 @@ public class BirdFeeder {
                 throw new RuntimeException(e);
             }
         }
+        System.out.println();
     }
 
-
     public static void main(String[] args) throws IOException {
-        feedBird();
+        System.out.println("--- sending ");
+        System.out.println(GET_REQUEST);
+        System.out.println(" -> receiving:");
+        send(GET_REQUEST);
+
+        System.out.println("--- sending ");
+        System.out.println(POST_REQUEST);
+        System.out.println(" -> receiving:");
+        send(POST_REQUEST);
     }
 }
