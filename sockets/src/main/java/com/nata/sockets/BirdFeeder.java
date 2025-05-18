@@ -11,7 +11,7 @@ public class BirdFeeder {
 
     static final String GET_REQUEST = "GET /bird/sound HTTP/1.1\r\nHost:localhost\r\n\r\n";
 
-    static final String POST_REQUEST = "POST /bird/feed HTTP/1.1\r\nHost:localhost\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\ncorn";
+    static final String POST_REQUEST = "POST /bird/feed HTTP/1.1\r\nHost:localhost\r\nContent-Type: application/json\r\nContent-Length: 21\r\n\r\n{\"foodName\":\"bread\"}";
 
     static void send(String request) throws IOException {
         Socket socket = new Socket("localhost", 8080);

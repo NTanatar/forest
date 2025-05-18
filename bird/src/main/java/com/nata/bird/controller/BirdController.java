@@ -22,7 +22,7 @@ public class BirdController {
     @PostMapping("/feed")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public FeedResponse feed(@RequestBody String food) {
-        return new FeedResponse("thanks for " + food);
+    public FeedResponse feed(@RequestBody FeedRequest request) {
+        return new FeedResponse("thanks for " + request.getFoodName());
     }
 }
