@@ -17,10 +17,8 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class HealthCheck {
 
-    public static Mono<String> checkOne(String url) {
-        return WebClient.builder()
-            .baseUrl("http://localhost:8080/bird/")
-            .build()
+    public Mono<String> checkOne(String url) {
+        return getWebClient()
             .get()
             .uri(url)
             .retrieve()
@@ -33,17 +31,23 @@ public class HealthCheck {
             .timeout(Duration.ofSeconds(1));
     }
 
-    public static String checkAll(List<String> urls) {
+    public String checkAll(List<String> urls) {
         return Flux.fromIterable(urls)
             .parallel()
             .runOn(parallel())
-            .flatMap(HealthCheck::checkOne)
+            .flatMap(this::checkOne)
             .sequential()
             .collect(onlyElement())
             .block();
     }
 
+    static WebClient getWebClient() {
+        return WebClient.builder()
+            .baseUrl("http://localhost:8080/bird/")
+            .build();
+    }
+
     public static void main(String[] args) {
-           System.out.println(checkAll(List.of("bound","sound", "hound")));
+           System.out.println("-->" + new HealthCheck().checkAll(List.of("bound","sound", "hound")));
     }
 }
