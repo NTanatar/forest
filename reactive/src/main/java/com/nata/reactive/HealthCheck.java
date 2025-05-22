@@ -17,7 +17,17 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class HealthCheck {
 
-    public Mono<String> checkOne(String url) {
+    public String resolveUrlByHealthCheck(List<String> urls) {
+        return Flux.fromIterable(urls)
+            .parallel()
+            .runOn(parallel())
+            .flatMap(this::healthCheck)
+            .sequential()
+            .collect(onlyElement())
+            .block();
+    }
+
+    public Mono<String> healthCheck(String url) {
         return getWebClient()
             .get()
             .uri(url)
@@ -26,19 +36,10 @@ public class HealthCheck {
 
             .doOnError(throwable -> log.info("health check for {} failed ", url))
             .doOnSuccess(response -> log.info("health check for {} ok {}", url, response))
+
             .flatMap(response -> Mono.just(url))
             .onErrorResume(ex -> Mono.empty())
             .timeout(Duration.ofSeconds(1));
-    }
-
-    public String checkAll(List<String> urls) {
-        return Flux.fromIterable(urls)
-            .parallel()
-            .runOn(parallel())
-            .flatMap(this::checkOne)
-            .sequential()
-            .collect(onlyElement())
-            .block();
     }
 
     static WebClient getWebClient() {
@@ -48,6 +49,6 @@ public class HealthCheck {
     }
 
     public static void main(String[] args) {
-           System.out.println("-->" + new HealthCheck().checkAll(List.of("bound","sound", "hound")));
+           System.out.println("-->" + new HealthCheck().resolveUrlByHealthCheck(List.of("bound","sound", "hound")));
     }
 }
