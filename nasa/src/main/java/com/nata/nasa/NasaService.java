@@ -7,11 +7,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.OptionalLong;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 @Service
 public class NasaService {
@@ -31,15 +32,18 @@ public class NasaService {
         System.out.println("Fetched image list (" + images.size() + ") in: " + (currentTimeMillis() - s1) + " ms");
         long s2 = currentTimeMillis();
 
-        images.forEach(this::fetchSize);
+        Image largest = Flux.fromIterable(images)
+            .parallel()
+            .runOn(Schedulers.parallel())
+            .doOnNext(this::fetchSize)
+            .reduce((i1, i2) -> i1.getSize() > i2.getSize() ? i1 : i2)
+            .block();
 
         long fetchingSizeTime = (currentTimeMillis() - s2);
         System.out.println("Fetched sizes in: " + fetchingSizeTime + " ms");
         System.out.println(" -> " + fetchingSizeTime / images.size() + " ms per image ");
 
-        return images.stream()
-            .max(Comparator.comparing(Image::getSize))
-            .orElse(null);
+        return largest;
     }
 
     public ArrayList<Image> fetchImageList(int sol) {
