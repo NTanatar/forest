@@ -10,10 +10,10 @@ import org.springframework.web.servlet.view.RedirectView;
 @RequiredArgsConstructor
 public class NasaController {
 
-    private final NasaService nasaService;
+    private final ImageCache imageCache;
 
     @GetMapping("/largest")
     public RedirectView getLargest(@RequestParam Integer sol) {
-        return new RedirectView(nasaService.getUrlOfTheLargestPicture(sol));
+        return new RedirectView(imageCache.getLargest(sol).getUrl());
     }
 }
