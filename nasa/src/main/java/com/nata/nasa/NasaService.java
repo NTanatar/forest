@@ -1,6 +1,8 @@
 package com.nata.nasa;
 
 import static java.lang.System.currentTimeMillis;
+import static java.util.Objects.requireNonNull;
+import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import java.net.URI;
@@ -11,7 +13,9 @@ import java.util.ArrayList;
 import java.util.OptionalLong;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
@@ -24,6 +28,8 @@ public class NasaService {
     private final HttpClient client = HttpClient.newBuilder()
         .followRedirects(HttpClient.Redirect.ALWAYS)
         .build();
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public Image getLargest(int sol) {
         long s1 = currentTimeMillis();
@@ -40,26 +46,22 @@ public class NasaService {
         Image largest = Flux.fromIterable(images)
             .parallel()
             .runOn(Schedulers.parallel())
-            .doOnNext(this::fetchSize)
+            .doOnNext(this::fetchSizeAndRealUrl)
             .reduce((i1, i2) -> i1.getSize() > i2.getSize() ? i1 : i2)
             .block();
 
         long fetchingSizeTime = (currentTimeMillis() - s2);
         System.out.println("Fetched sizes in: " + fetchingSizeTime + " ms");
         System.out.println(" -> " + fetchingSizeTime / images.size() + " ms per image ");
-
+        System.out.println(" -> " + requireNonNull(largest).getUrl());
         return largest;
     }
 
     public ArrayList<Image> fetchImageList(int sol) {
         String url = String.format("%s?sol=%s&api_key=%s", BASE_URL, sol, API_KEY);
 
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
-
-        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-            .thenApply(HttpResponse::body)
-            .thenApply(NasaService::toImages)
-            .join();
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        return toImages(response.getBody());
     }
 
     private static ArrayList<Image> toImages(String content) {
@@ -83,10 +85,25 @@ public class NasaService {
 
         long size = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
             .thenApply(HttpResponse::headers)
-            .thenApply(headers ->  headers.firstValueAsLong("content-length"))
+            .thenApply(headers -> headers.firstValueAsLong("content-length"))
             .thenApply(OptionalLong::getAsLong)
             .join();
 
+        image.setSize(size);
+        System.out.println(size);
+    }
+
+    private void fetchSizeAndRealUrl(Image image) {
+        ResponseEntity<String> response = restTemplate.getForEntity(image.getUrl(), String.class);
+
+        int status = response.getStatusCode().value();
+        while (status == MOVED_PERMANENTLY.value()) {
+
+            image.setUrl(requireNonNull(response.getHeaders().getLocation()).toString());
+            response = restTemplate.getForEntity(image.getUrl(), String.class);
+            status = response.getStatusCode().value();
+        }
+        long size = response.getHeaders().getContentLength();
         image.setSize(size);
         System.out.println(size);
     }
