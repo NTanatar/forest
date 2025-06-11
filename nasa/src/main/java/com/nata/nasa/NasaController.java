@@ -14,6 +14,8 @@ public class NasaController {
 
     @GetMapping("/largest")
     public RedirectView getLargest(@RequestParam Integer sol) {
-        return new RedirectView(imageCache.getLargest(sol).getUrl());
+        Image largest = imageCache.getLargest(sol);
+        // TODO handle null
+        return new RedirectView(largest.getUrl());
     }
 }

@@ -1,6 +1,7 @@
 package com.nata.nasa;
 
 import static java.lang.System.currentTimeMillis;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -30,6 +31,10 @@ public class NasaService {
         ArrayList<Image> images = fetchImageList(sol);
 
         System.out.println("Fetched image list (" + images.size() + ") in: " + (currentTimeMillis() - s1) + " ms");
+        if (isEmpty(images)) {
+            System.out.println("Empty image list");
+            return null;
+        }
         long s2 = currentTimeMillis();
 
         Image largest = Flux.fromIterable(images)
