@@ -2,7 +2,6 @@ package com.nata.nasa;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.Objects.requireNonNull;
-import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import java.net.URI;
@@ -96,12 +95,12 @@ public class NasaService {
     private void fetchSizeAndRealUrl(Image image) {
         ResponseEntity<String> response = restTemplate.getForEntity(image.getUrl(), String.class);
 
-        int status = response.getStatusCode().value();
-        while (status == MOVED_PERMANENTLY.value()) {
+        boolean isRedirect = response.getStatusCode().is3xxRedirection();
+        while (isRedirect) {
 
             image.setUrl(requireNonNull(response.getHeaders().getLocation()).toString());
             response = restTemplate.getForEntity(image.getUrl(), String.class);
-            status = response.getStatusCode().value();
+            isRedirect = response.getStatusCode().is3xxRedirection();
         }
         long size = response.getHeaders().getContentLength();
         image.setSize(size);
