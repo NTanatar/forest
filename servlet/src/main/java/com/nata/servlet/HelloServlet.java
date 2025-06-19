@@ -4,22 +4,31 @@ import java.io.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 
-@WebServlet(name = "helloServlet", value = "/hello-servlet")
+@WebServlet(name = "helloServlet", value = "/hello")
 public class HelloServlet extends HttpServlet {
-    private String message;
 
     public void init() {
-        message = "Hello World!";
+
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        HttpSession session = request.getSession();
+
+        if (request.getParameter("name") != null) {
+            session.setAttribute("name", request.getParameter("name"));
+        }
+
+        String name = (String) session.getAttribute("name");
+
         response.setContentType("text/html");
 
-        // Hello
         PrintWriter out = response.getWriter();
-        out.println("<html><body>");
-        out.println("<h1>" + message + "</h1>");
-        out.println("</body></html>");
+        if (name != null) {
+            out.println("Hello," + name + "!");
+        } else {
+            out.println("Hello!");
+        }
     }
 
     public void destroy() {
