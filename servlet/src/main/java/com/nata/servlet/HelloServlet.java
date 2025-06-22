@@ -27,9 +27,12 @@ public class HelloServlet extends HttpServlet {
 
         // --- get or create session
         String sessionIdFromCookie = getSessionId(request.getCookies());
-        Session session = sessionIdFromCookie == null
+        System.out.println("session id from cookie: " + sessionIdFromCookie);
+        Session session = (sessionIdFromCookie == null || !sessionMap.containsKey(sessionIdFromCookie))
             ? createNewSession()
             : sessionMap.get(sessionIdFromCookie);
+
+        System.out.println("Session: " + session.getSessionId() + ", " + session.getUserName());
 
         // --- if name is specified update the session data
         if (request.getParameter(NAME_PARAM) != null) {
@@ -70,6 +73,7 @@ public class HelloServlet extends HttpServlet {
         while (sessionMap.containsKey(uuid.toString())) {
             uuid = UUID.randomUUID();
         }
+        System.out.println("New session Id: " + uuid);
         return new Session(uuid.toString());
     }
 }
