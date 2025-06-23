@@ -27,18 +27,18 @@ public class HelloServlet extends HttpServlet {
 
         // --- get or create session
         String sessionIdFromCookie = getSessionId(request.getCookies());
-        System.out.println("session id from cookie: " + sessionIdFromCookie);
+        System.out.println("Session id from cookie: " + sessionIdFromCookie);
         Session session = (sessionIdFromCookie == null || !sessionMap.containsKey(sessionIdFromCookie))
             ? createNewSession()
             : sessionMap.get(sessionIdFromCookie);
-
-        System.out.println("Session: " + session.getSessionId() + ", " + session.getUserName());
 
         // --- if name is specified update the session data
         if (request.getParameter(NAME_PARAM) != null) {
             session.setUserName(request.getParameter(NAME_PARAM));
         }
         sessionMap.put(session.getSessionId(), session);
+
+        System.out.println("-> stored: " + session.getSessionId() + ", " + session.getUserName());
 
         // ---- build response
         response.addCookie(new Cookie(COOKIE_NAME, session.getSessionId()));
@@ -66,6 +66,13 @@ public class HelloServlet extends HttpServlet {
             }
         }
         return null;
+
+        /*return ofNullable(cookies)
+            .flatMap(arr -> Arrays.stream(arr)
+                .filter(cookie -> cookie.getName().equals(COOKIE_NAME))
+                .findFirst()
+                .map(Cookie::getValue))
+            .orElse(null);*/
     }
 
     private Session createNewSession() {
@@ -73,7 +80,7 @@ public class HelloServlet extends HttpServlet {
         while (sessionMap.containsKey(uuid.toString())) {
             uuid = UUID.randomUUID();
         }
-        System.out.println("New session Id: " + uuid);
+        System.out.println("-> New session Id: " + uuid);
         return new Session(uuid.toString());
     }
 }
